@@ -1,5 +1,4 @@
 {
-  "_comment": "FILE: vercel.json",
   "rewrites": [
     {
       "source": "/",
