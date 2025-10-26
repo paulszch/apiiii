@@ -1,0 +1,13 @@
+{
+  "_comment": "FILE: vercel.json",
+  "rewrites": [
+    {
+      "source": "/",
+      "destination": "/public/index.html"
+    },
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/$1"
+    }
+  ]
+}

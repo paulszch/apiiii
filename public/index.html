@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi Downloader</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    animation: {
+                        'gradient': 'gradient 8s linear infinite',
+                        'float': 'float 3s ease-in-out infinite',
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    },
+                    keyframes: {
+                        gradient: {
+                            '0%, 100%': { backgroundPosition: '0% 50%' },
+                            '50%': { backgroundPosition: '100% 50%' },
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0px)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .bg-gradient-animated {
+            background: linear-gradient(-45deg, #667eea, #764ba2, #f093fb, #4facfe);
+            background-size: 400% 400%;
+            animation: gradient 15s ease infinite;
+        }
+        .glass {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .format-btn {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .format-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(102, 126, 234, 0.4);
+        }
+        .format-btn.selected {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            transform: scale(1.05);
+        }
+        .tab-indicator {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+    </style>
+</head>
+<body class="bg-gradient-animated min-h-screen flex items-center justify-center p-4 md:p-6">
+    
+    <!-- Background Decorations -->
+    <div class="fixed inset-0 overflow-hidden pointer-events-none">
+        <div class="absolute top-20 left-10 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-float"></div>
+        <div class="absolute top-40 right-10 w-72 h-72 bg-yellow-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-float" style="animation-delay: 2s;"></div>
+        <div class="absolute -bottom-8 left-20 w-72 h-72 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-float" style="animation-delay: 4s;"></div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="relative w-full max-w-4xl">
+        <!-- Header -->
+        <div class="text-center mb-8 animate-float">
+            <div class="inline-block">
+                <h1 class="text-5xl md:text-6xl font-black text-white mb-3 drop-shadow-2xl">
+                    📥 Multi Downloader
+                </h1>
+                <div class="h-1 bg-gradient-to-r from-transparent via-white to-transparent rounded-full"></div>
+            </div>
+            <p class="text-white/90 text-lg mt-4 font-medium drop-shadow-lg">
+                Download from YouTube & Mediafire with ease
+            </p>
+        </div>
+
+        <!-- Card -->
+        <div class="glass rounded-3xl shadow-2xl p-6 md:p-10 relative overflow-hidden">
+            
+            <!-- Tabs -->
+            <div class="relative mb-8">
+                <div class="flex gap-2 bg-gray-100 rounded-2xl p-1.5 relative">
+                    <div class="tab-indicator absolute h-[calc(100%-12px)] bg-white rounded-xl shadow-lg transition-all duration-300" 
+                         style="width: calc(50% - 6px); left: 6px;" id="tabIndicator"></div>
+                    
+                    <button class="tab relative z-10 flex-1 py-3 px-6 rounded-xl font-bold transition-all duration-300 text-gray-700 hover:text-purple-600" 
+                            onclick="switchTab('youtube')" id="tab-youtube">
+                        <span class="flex items-center justify-center gap-2">
+                            <span class="text-2xl">🎬</span>
+                            <span>YouTube</span>
+                        </span>
+                    </button>
+                    <button class="tab relative z-10 flex-1 py-3 px-6 rounded-xl font-bold transition-all duration-300 text-gray-500 hover:text-purple-600" 
+                            onclick="switchTab('mediafire')" id="tab-mediafire">
+                        <span class="flex items-center justify-center gap-2">
+                            <span class="text-2xl">📁</span>
+                            <span>Mediafire</span>
+                        </span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- YouTube Tab -->
+            <div id="youtube-tab" class="tab-content">
+                <div class="space-y-6">
+                    <!-- URL Input -->
+                    <div class="group">
+                        <label class="block text-gray-700 font-bold mb-3 text-sm uppercase tracking-wide">
+                            🔗 YouTube URL
+                        </label>
+                        <input type="text" id="ytUrl" 
+                               placeholder="https://youtube.com/watch?v=..." 
+                               class="w-full px-5 py-4 bg-white border-2 border-gray-200 rounded-2xl text-gray-800 placeholder-gray-400 focus:border-purple-500 focus:ring-4 focus:ring-purple-500/20 transition-all duration-300 outline-none font-medium">
+                    </div>
+
+                    <!-- Audio Quality -->
+                    <div>
+                        <h3 class="text-gray-700 font-bold mb-3 flex items-center gap-2 text-sm uppercase tracking-wide">
+                            🎵 <span>Audio Quality</span>
+                        </h3>
+                        <div class="grid grid-cols-3 sm:grid-cols-6 gap-3">
+                            <button class="format-btn px-4 py-3 bg-white border-2 border-gray-200 rounded-xl font-bold text-gray-700 hover:border-purple-500" data-format="64k">64k</button>
+                            <button class="format-btn px-4 py-3 bg-white border-2 border-gray-200 rounded-xl font-bold text-gray-700 hover:border-purple-500" data-format="96k">96k</button>
+                            <button class="format-btn selected px-4 py-3 text-white rounded-xl font-bold shadow-lg" data-format="128k">128k</button>
+                            <button class="format-btn px-4 py-3 bg-white border-2 border-gray-200 rounded-xl font-bold text-gray-700 hover:border-purple-500" data-format="192k">192k</button>
+                            <button class="format-btn px-4 py-3 bg-white border-2 border-gray-200 rounded-xl font-bold text-gray-700 hover:border-purple-500" data-format="256k">256k</button>
+                            <button class="format-btn px-4 py-3 bg-white border-2 border-gray-200 rounded-xl font-bold text-gray-700 hover:border-purple-500" data-format="320k">320k</button>
+                        </div>
+                    </div>
+
+                    <!-- Video Quality -->
+                    <div>
+                        <h3 class="text-gray-700 font-bold mb-3 flex items-center gap-2 text-sm uppercase tracking-wide">
+                            🎥 <span>Video Quality</span>
+                        </h3>
+                        <div class="grid grid-cols-3 sm:grid-cols-5 gap-3">
+                            <button class="format-btn px-4 py-3 bg-white border-2 border-gray-200 rounded-xl font-bold text-gray-700 hover:border-purple-500" data-format="240p">240p</button>
+                            <button class="format-btn px-4 py-3 bg-white border-2 border-gray-200 rounded-xl font-bold text-gray-700 hover:border-purple-500" data-format="360p">360p</button>
+                            <button class="format-btn px-4 py-3 bg-white border-2 border-gray-200 rounded-xl font-bold text-gray-700 hover:border-purple-500" data-format="480p">480p</button>
+                            <button class="format-btn px-4 py-3 bg-white border-2 border-gray-200 rounded-xl font-bold text-gray-700 hover:border-purple-500" data-format="720p">720p</button>
+                            <button class="format-btn px-4 py-3 bg-white border-2 border-gray-200 rounded-xl font-bold text-gray-700 hover:border-purple-500" data-format="1080p">1080p</button>
+                        </div>
+                    </div>
+
+                    <!-- Download Button -->
+                    <button onclick="downloadYouTube()" 
+                            class="w-full py-5 bg-gradient-to-r from-purple-600 to-purple-800 hover:from-purple-700 hover:to-purple-900 text-white font-bold rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.02] active:scale-95 text-lg">
+                        <span class="flex items-center justify-center gap-3">
+                            <span>⬇️</span>
+                            <span>Download YouTube</span>
+                        </span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Mediafire Tab -->
+            <div id="mediafire-tab" class="tab-content hidden">
+                <div class="space-y-6">
+                    <!-- Info Box -->
+                    <div class="bg-gradient-to-r from-blue-50 to-cyan-50 border-2 border-blue-200 rounded-2xl p-5">
+                        <div class="flex items-start gap-3">
+                            <span class="text-3xl">💡</span>
+                            <div>
+                                <h4 class="font-bold text-blue-800 mb-1">Quick Tip</h4>
+                                <p class="text-blue-700 text-sm leading-relaxed">
+                                    Paste your Mediafire share link to get a direct download link instantly
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- URL Input -->
+                    <div class="group">
+                        <label class="block text-gray-700 font-bold mb-3 text-sm uppercase tracking-wide">
+                            🔗 Mediafire URL
+                        </label>
+                        <input type="text" id="mfUrl" 
+                               placeholder="https://mediafire.com/file/..." 
+                               class="w-full px-5 py-4 bg-white border-2 border-gray-200 rounded-2xl text-gray-800 placeholder-gray-400 focus:border-purple-500 focus:ring-4 focus:ring-purple-500/20 transition-all duration-300 outline-none font-medium">
+                    </div>
+
+                    <!-- Download Button -->
+                    <button onclick="downloadMediafire()" 
+                            class="w-full py-5 bg-gradient-to-r from-purple-600 to-purple-800 hover:from-purple-700 hover:to-purple-900 text-white font-bold rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.02] active:scale-95 text-lg">
+                        <span class="flex items-center justify-center gap-3">
+                            <span>🔗</span>
+                            <span>Get Download Link</span>
+                        </span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Loading -->
+            <div id="loading" class="hidden mt-8">
+                <div class="flex flex-col items-center justify-center py-8">
+                    <div class="relative">
+                        <div class="w-16 h-16 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin"></div>
+                        <div class="absolute inset-0 w-16 h-16 border-4 border-transparent border-t-pink-600 rounded-full animate-spin" style="animation-duration: 1.5s;"></div>
+                    </div>
+                    <p class="text-gray-700 font-semibold mt-4 animate-pulse">Processing your request...</p>
+                </div>
+            </div>
+
+            <!-- Error -->
+            <div id="error" class="hidden mt-6">
+                <div class="bg-red-50 border-2 border-red-200 rounded-2xl p-5">
+                    <div class="flex items-start gap-3">
+                        <span class="text-2xl">❌</span>
+                        <div class="flex-1">
+                            <h4 class="font-bold text-red-800 mb-1">Oops! Something went wrong</h4>
+                            <p class="text-red-700 text-sm" id="errorMessage"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results -->
+            <div id="results" class="hidden mt-8">
+                <div class="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-2xl p-6">
+                    <h2 class="text-2xl font-black text-green-800 mb-4 flex items-center gap-2">
+                        <span>✅</span>
+                        <span>Download Ready!</span>
+                    </h2>
+                    <div id="resultsList" class="space-y-3"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="text-center mt-8 text-white/80 text-sm">
+            <p class="drop-shadow-lg">Made with ❤️ by Wolep</p>
+        </div>
+    </div>
+
+    <script>
+        // Tab switching
+        function switchTab(tab) {
+            const tabs = ['youtube', 'mediafire'];
+            const indicator = document.getElementById('tabIndicator');
+            
+            tabs.forEach((t, index) => {
+                const tabBtn = document.getElementById(`tab-${t}`);
+                const tabContent = document.getElementById(`${t}-tab`);
+                
+                if (t === tab) {
+                    tabBtn.classList.remove('text-gray-500');
+                    tabBtn.classList.add('text-gray-700');
+                    tabContent.classList.remove('hidden');
+                    indicator.style.left = `${index * 50 + 0.375}%`;
+                } else {
+                    tabBtn.classList.remove('text-gray-700');
+                    tabBtn.classList.add('text-gray-500');
+                    tabContent.classList.add('hidden');
+                }
+            });
+            
+            hideMessages();
+        }
+
+        // Format selection for YouTube
+        const formatBtns = document.querySelectorAll('.format-btn');
+        const selectedFormats = new Set(['128k']);
+
+        formatBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const format = btn.dataset.format;
+                if (selectedFormats.has(format)) {
+                    selectedFormats.delete(format);
+                    btn.classList.remove('selected', 'text-white', 'shadow-lg');
+                    btn.classList.add('bg-white', 'border-2', 'border-gray-200', 'text-gray-700');
+                } else {
+                    selectedFormats.add(format);
+                    btn.classList.add('selected', 'text-white', 'shadow-lg');
+                    btn.classList.remove('bg-white', 'border-2', 'border-gray-200', 'text-gray-700');
+                }
+            });
+        });
+
+        function hideMessages() {
+            document.getElementById('loading').classList.add('hidden');
+            document.getElementById('error').classList.add('hidden');
+            document.getElementById('results').classList.add('hidden');
+        }
+
+        function showLoading() {
+            hideMessages();
+            document.getElementById('loading').classList.remove('hidden');
+        }
+
+        function showError(message) {
+            hideMessages();
+            document.getElementById('errorMessage').textContent = message;
+            document.getElementById('error').classList.remove('hidden');
+        }
+
+        function showResults(html) {
+            hideMessages();
+            document.getElementById('resultsList').innerHTML = html;
+            document.getElementById('results').classList.remove('hidden');
+        }
+
+        // YouTube Download
+        async function downloadYouTube() {
+            const url = document.getElementById('ytUrl').value.trim();
+
+            if (!url) {
+                showError('Please enter a YouTube URL!');
+                return;
+            }
+
+            if (selectedFormats.size === 0) {
+                showError('Please select at least one format!');
+                return;
+            }
+
+            showLoading();
+
+            try {
+                const formats = Array.from(selectedFormats).join(',');
+                const apiUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+                    ? `/api/download?url=${encodeURIComponent(url)}&formats=${formats}`
+                    : `https://${window.location.hostname}/api/download?url=${encodeURIComponent(url)}&formats=${formats}`;
+                const response = await fetch(apiUrl);
+                const data = await response.json();
+
+                if (!data.success) {
+                    throw new Error(data.error);
+                }
+
+                const html = data.results.map(result => `
+                    <div class="bg-white rounded-xl p-4 border-2 border-green-200 hover:border-green-400 transition-all duration-300 hover:shadow-lg">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <span class="inline-block px-3 py-1 bg-gradient-to-r from-purple-600 to-purple-800 text-white text-xs font-bold rounded-full mb-2">
+                                    ${result.userFormat}
+                                </span>
+                            </div>
+                            <a href="${result.downloadUrl}" target="_blank" 
+                               class="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold rounded-xl transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-lg">
+                                <span>⬇️</span>
+                                <span>Download</span>
+                            </a>
+                        </div>
+                    </div>
+                `).join('');
+
+                showResults(html);
+
+            } catch (err) {
+                showError(err.message);
+            }
+        }
+
+        // Mediafire Download
+        async function downloadMediafire() {
+            const url = document.getElementById('mfUrl').value.trim();
+
+            if (!url) {
+                showError('Please enter a Mediafire URL!');
+                return;
+            }
+
+            showLoading();
+
+            try {
+                const apiUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+                    ? `/api/mediafire?url=${encodeURIComponent(url)}`
+                    : `https://${window.location.hostname}/api/mediafire?url=${encodeURIComponent(url)}`;
+                const response = await fetch(apiUrl);
+                const data = await response.json();
+
+                if (!data.success) {
+                    throw new Error(data.error);
+                }
+
+                const html = `
+                    <div class="bg-white rounded-xl p-5 border-2 border-green-200">
+                        <div class="flex items-start gap-4 mb-4">
+                            <span class="text-4xl">📁</span>
+                            <div class="flex-1">
+                                <h3 class="font-bold text-gray-800 text-lg mb-2">${data.fileName}</h3>
+                                <div class="grid grid-cols-2 gap-2 text-sm text-gray-600 mb-2">
+                                    <div class="px-2 py-1 bg-gray-100 rounded-lg font-medium">📦 ${data.fileSize}</div>
+                                    <div class="px-2 py-1 bg-gray-100 rounded-lg font-medium">📅 ${data.uploaded}</div>
+                                </div>
+                                <div class="text-sm text-gray-600">
+                                    <div class="mb-1"><strong>Type:</strong> ${data.fileType}</div>
+                                    <div class="mb-1"><strong>${data.titleExt}</strong></div>
+                                    <div class="text-xs text-gray-500">${data.descriptionExt}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <a href="${data.url}" target="_blank" 
+                           class="block text-center px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold rounded-xl transition-all duration-300 transform hover:scale-[1.02] shadow-md hover:shadow-lg">
+                            <span class="flex items-center justify-center gap-2">
+                                <span>⬇️</span>
+                                <span>Download File</span>
+                            </span>
+                        </a>
+                    </div>
+                `;
+
+                showResults(html);
+
+            } catch (err) {
+                showError(err.message);
+            }
+        }
+
+        // Enter key support
+        document.getElementById('ytUrl').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') downloadYouTube();
+        });
+        document.getElementById('mfUrl').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') downloadMediafire();
+        });
+    </script>
+</body>
+</html>

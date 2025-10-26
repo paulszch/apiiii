@@ -1,0 +1,12 @@
+{
+  "_comment": "FILE: package.json",
+  "name": "youtube-downloader",
+  "version": "1.0.0",
+  "description": "YouTube Audio/Video Downloader",
+  "scripts": {
+    "dev": "vercel dev"
+  },
+  "keywords": ["youtube", "downloader", "audio", "video"],
+  "author": "wolep",
+  "license": "MIT"
+}
