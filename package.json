@@ -1,5 +1,4 @@
 {
-  "_comment": "FILE: package.json",
   "name": "youtube-downloader",
   "version": "1.0.0",
   "description": "YouTube Audio/Video Downloader",
